@@ -3,7 +3,13 @@
 set -e
 set -o pipefail
 
-for i in $(find -name main.tf.json); do
-	DIR=$(dirname $i)
-	terraform validate $DIR
+ROOT_DIR=$PWD
+FILENAME='main.tf.json'
+for i in $(find -name $FILENAME); do
+	cd $(dirname $i)
+	if [[ ! -d ".terraform" ]]; then
+		terraform init
+	fi
+	terraform validate
+	cd $ROOT_DIR
 done
