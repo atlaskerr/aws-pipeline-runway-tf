@@ -97,6 +97,25 @@ local pipeline = import 'pipelines.libsonnet';
         ],
       },
 
+      codedeploy_policy: {
+        statement: [
+
+          {
+            effect: 'Allow',
+            resources: [
+              '${aws_s3_bucket.pipeline.arn}',
+              '${aws_s3_bucket.pipeline.arn}/*',
+            ],
+            actions: [
+              's3:PutObject',
+              's3:GetObject',
+              's3:GetObjectVersion',
+            ],
+          },
+
+        ],
+      },
+
       codepipeline_assume_role: {
         statement: {
           sid: '1',
@@ -124,6 +143,20 @@ local pipeline = import 'pipelines.libsonnet';
         },
       },
 
+      codedeploy_assume_role: {
+        statement: {
+          sid: '1',
+          effect: 'Allow',
+
+          principals: [{
+            type: 'Service',
+            identifiers: ['codedeploy.amazonaws.com'],
+          }],
+
+          actions: ['sts:AssumeRole'],
+        },
+      },
+
     },
   },
 
@@ -145,18 +178,25 @@ local pipeline = import 'pipelines.libsonnet';
         assume_role_policy:
           '${data.aws_iam_policy_document.codepipeline_assume_role.json}',
       },
+      codedeploy_role: {
+        name: 'akerr-lab-codedeploy-hello',
+        assume_role_policy:
+          '${data.aws_iam_policy_document.codedeploy_assume_role.json}',
+      },
     },
 
     aws_iam_role_policy_attachment: {
       codepipeline: {
         role: '${aws_iam_role.codepipeline_role.name}',
         policy_arn: '${aws_iam_policy.codepipeline.arn}',
-
       },
       codebuild: {
         role: '${aws_iam_role.codebuild_role.name}',
         policy_arn: '${aws_iam_policy.codebuild.arn}',
-
+      },
+      codedeploy: {
+        role: '${aws_iam_role.codedeploy_role.name}',
+        policy_arn: '${aws_iam_policy.codedeploy.arn}',
       },
     },
 
@@ -181,6 +221,10 @@ local pipeline = import 'pipelines.libsonnet';
       codepipeline: {
         name: 'codepipeline-hello',
         policy: '${data.aws_iam_policy_document.codepipeline_policy.json}',
+      },
+      codedeploy: {
+        name: 'codedeploy-hello',
+        policy: '${data.aws_iam_policy_document.codedeploy_policy.json}',
       },
     },
 
@@ -217,6 +261,40 @@ local pipeline = import 'pipelines.libsonnet';
 
     aws_codepipeline: {
       dev: pipeline.dev,
+    },
+
+    aws_codedeploy_app: {
+      hello: {
+        compute_platform: 'Lambda',
+        name: 'akerr-lab-hello-lambda',
+      },
+    },
+
+    aws_codedeploy_deployment_config: {
+      hello: {
+        deployment_config_name: 'akerr-lab-hello',
+        compute_platform: 'Lambda',
+        traffic_routing_config: {
+          type: 'AllAtOnce',
+        },
+      },
+    },
+
+    aws_codedeploy_deployment_group: {
+      hello: {
+        app_name: '${aws_codedeploy_app.hello.name}',
+        deployment_group_name: 'akerr-lab-hello-deployment-group',
+        deployment_config_name: '${aws_codedeploy_deployment_config.hello.id}',
+        deployment_style: {
+          deployment_option: 'WITH_TRAFFIC_CONTROL',
+          deployment_type: 'BLUE_GREEN',
+        },
+        service_role_arn: '${aws_iam_role.codedeploy_role.arn}',
+        auto_rollback_configuration: {
+          enabled: true,
+          events: ['DEPLOYMENT_STOP_ON_ALARM'],
+        },
+      },
     },
 
     aws_s3_bucket: {

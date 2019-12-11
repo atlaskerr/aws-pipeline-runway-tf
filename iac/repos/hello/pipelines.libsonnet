@@ -44,24 +44,24 @@
         ],
       },
 
-      //{
-      //  name: 'Build',
-      //  action: [
-      //    {
-      //      version: '1',
-      //      run_order: 3,
-      //      category: 'Build',
-      //      owner: 'AWS',
-      //      name: 'app-build',
-      //      input_artifacts: ['source-output'],
-      //      output_artifacts: ['build-output'],
-      //      provider: 'CodeBuild',
-      //      configuration: {
-      //        ProjectName: '',
-      //      },
-      //    },
-      //  ],
-      //},
+      {
+        name: 'Build',
+        action: [
+          {
+            version: '1',
+            run_order: 3,
+            category: 'Build',
+            owner: 'AWS',
+            name: 'app-build',
+            input_artifacts: ['source-output'],
+            output_artifacts: ['build-output'],
+            provider: 'CodeBuild',
+            configuration: {
+              ProjectName: 'akerr-lab-hello-build-app',
+            },
+          },
+        ],
+      },
 
     ],
   },
