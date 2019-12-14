@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"testing"
+
+	"github.com/aws/aws-lambda-go/events"
 )
 
 func TestHandlerInvoke(t *testing.T) {
@@ -13,12 +15,12 @@ func TestHandlerInvoke(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	var got response
+	var got events.APIGatewayProxyResponse
 	err = json.Unmarshal(b, &got)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got.Message != "Hello World!" {
+	if got.Body != `{"message": "Hello World!"}` {
 		t.Fail()
 	}
 }
