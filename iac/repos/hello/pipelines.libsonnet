@@ -63,6 +63,26 @@
         ],
       },
 
+      {
+        name: 'artifact-to-s3',
+        action: [
+          {
+            version: '1',
+            run_order: 4,
+            category: 'Deploy',
+            owner: 'AWS',
+            name: 'artifact-to-s3',
+            input_artifacts: ['build-output'],
+            provider: 'Amazon S3',
+            configuration: {
+              S3Bucket: '${aws_s3_bucket.lambda_code.bucket}',
+              S3ObjectKey: '/',
+              PollForSourceChanges: false,
+            },
+          },
+        ],
+      },
+
     ],
   },
 }

@@ -1,3 +1,5 @@
 .terraform/
+main
+main.zip
 .nvimrc
 

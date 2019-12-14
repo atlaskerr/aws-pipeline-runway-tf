@@ -74,7 +74,10 @@ local pipeline = import 'pipelines.libsonnet';
 
           {
             effect: 'Allow',
-            resources: ['${aws_codebuild_project.test_go_code.arn}'],
+            resources: [
+              '${aws_codebuild_project.test_go_code.arn}',
+              '${aws_codebuild_project.build_app.arn}',
+            ],
             actions: [
               'codebuild:StartBuild',
               'codebuild:BatchGetBuilds',
@@ -157,10 +160,33 @@ local pipeline = import 'pipelines.libsonnet';
         },
       },
 
+      lambda_assume_role: {
+        statement: {
+          sid: '1',
+          effect: 'Allow',
+
+          principals: [{
+            type: 'Service',
+            identifiers: ['codedeploy.amazonaws.com'],
+          }],
+
+          actions: ['sts:AssumeRole'],
+        },
+      },
+
     },
   },
 
   resource: {
+
+    //    aws_lambda_function: {
+    //      hello: {
+    //        runtime: 'go1.x',
+    //        role: '${aws_iam_role.lambda_role.arn}',
+    //        function_name: 'akerr-lab-hello-lambda',
+    //        handler: 'main',
+    //      },
+    //    },
 
     aws_codecommit_repository: { main: {
       repository_name: 'hello',
@@ -182,6 +208,11 @@ local pipeline = import 'pipelines.libsonnet';
         name: 'akerr-lab-codedeploy-hello',
         assume_role_policy:
           '${data.aws_iam_policy_document.codedeploy_assume_role.json}',
+      },
+      lambda_role: {
+        name: 'akerr-lab-lambda-hello',
+        assume_role_policy:
+          '${data.aws_iam_policy_document.lambda_assume_role.json}',
       },
     },
 
@@ -243,7 +274,6 @@ local pipeline = import 'pipelines.libsonnet';
         },
         source: {
           type: 'CODEPIPELINE',
-          buildspec: std.manifestYamlDoc(import 'buildspec.libsonnet'),
         },
         cache: {
           type: 'S3',
@@ -257,6 +287,37 @@ local pipeline = import 'pipelines.libsonnet';
           },
         },
       },
+
+      build_app: {
+        name: 'akerr-lab-hello-build-app',
+        description: 'Build application',
+        service_role: '${aws_iam_role.codebuild_role.arn}',
+        build_timeout: '5',
+        artifacts: {
+          type: 'CODEPIPELINE',
+        },
+        environment: {
+          compute_type: 'BUILD_GENERAL1_SMALL',
+          image: 'aws/codebuild/amazonlinux2-x86_64-standard:2.0',
+          type: 'LINUX_CONTAINER',
+          image_pull_credentials_type: 'CODEBUILD',
+        },
+        source: {
+          type: 'CODEPIPELINE',
+        },
+        cache: {
+          type: 'S3',
+          location: '${aws_s3_bucket.build_test_cache.bucket}',
+        },
+        logs_config: {
+          cloudwatch_logs: {
+            status: 'ENABLED',
+            group_name: '${aws_cloudwatch_log_group.hello_codebuild.name}',
+            stream_name: '${aws_cloudwatch_log_stream.codebuild.name}',
+          },
+        },
+      },
+
     },
 
     aws_codepipeline: {
@@ -301,9 +362,16 @@ local pipeline = import 'pipelines.libsonnet';
       pipeline: {
         bucket: 'akerr-lab-hello-pipeline',
         acl: 'private',
+        force_destroy: true,
       },
+
       build_test_cache: {
         bucket: 'akerr-lab-hello-build-test-cache',
+        acl: 'private',
+      },
+
+      lambda_code: {
+        bucket: 'akerr-lab-hello-lambda-code',
         acl: 'private',
       },
     },

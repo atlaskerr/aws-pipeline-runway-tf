@@ -1,10 +1,10 @@
-DEFAULT := generate
+DEFAULT := build
 
-generate: terraform-generate
+build: terraform-generate go-build
 
 validate: terraform-validate
 
-clean: terraform-clean
+clean: terraform-clean go-clean
 
 .PHONY: terraform-generate
 terraform-generate:
@@ -18,3 +18,14 @@ terraform-validate:
 terraform-clean:
 	scripts/terraform/clean.sh
 
+.PHONY: go-build
+go-build:
+	scripts/go/build.sh
+
+.PHONY: go-clean
+go-clean:
+	scripts/go/clean.sh
+
+.PHONY: go-test
+go-test:
+	go test ./...
