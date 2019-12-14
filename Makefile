@@ -1,6 +1,4 @@
-DEFAULT := build
-
-build: terraform-generate go-build
+.DEFAULT_GOAL := terraform-generate
 
 validate: terraform-validate
 
