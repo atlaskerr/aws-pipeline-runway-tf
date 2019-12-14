@@ -13,6 +13,8 @@
       id:: '${data.terraform_remote_state.api_gateway.outputs.id}',
       root_resource_id::
         '${data.terraform_remote_state.api_gateway.outputs.root_resource_id}',
+      execution_arn::
+        '${data.terraform_remote_state.api_gateway.outputs.execution_arn}',
       backend: 's3',
       config: {
         bucket: $.terraform.backend.s3.bucket,
@@ -29,7 +31,9 @@
         actions: ['sts:AssumeRole'],
         principals: [{
           type: 'Service',
-          identifiers: ['lambda.amazonaws.com'],
+          identifiers: [
+            'lambda.amazonaws.com',
+          ],
         }],
       }],
     } },
@@ -47,6 +51,7 @@
 
     aws_lambda_function: { hello: {
       invoke_arn:: '${aws_lambda_function.hello.invoke_arn}',
+      arn:: '${aws_lambda_function.hello.arn}',
       function_name: 'akerr-lab-hello',
       description: 'Test lambda that says hello.',
       memory_size: '128',
@@ -60,6 +65,16 @@
     } },
 
     local api_gateway = $.data.terraform_remote_state.api_gateway,
+    aws_lambda_permission: {
+      api_gateway: {
+        function_name: $.resource.aws_lambda_function.hello.arn,
+        statement_id: 'AllowExecutionFromApiGateway',
+        action: 'lambda:InvokeFunction',
+        principal: 'apigateway.amazonaws.com',
+        source_arn: api_gateway.execution_arn + '/*/*/*',
+      },
+    },
+
     aws_api_gateway_resource: { hello: {
       id:: '${aws_api_gateway_resource.hello.id}',
       rest_api_id: api_gateway.id,
@@ -80,7 +95,7 @@
       resource_id: api_gateway_resource.id,
       http_method: 'POST',
       integration_http_method: 'POST',
-      type: 'AWS',
+      type: 'AWS_PROXY',
       uri: $.resource.aws_lambda_function.hello.invoke_arn,
     } },
 

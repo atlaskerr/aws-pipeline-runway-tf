@@ -54,7 +54,7 @@
             "integration_http_method": "POST",
             "resource_id": "${aws_api_gateway_resource.hello.id}",
             "rest_api_id": "${data.terraform_remote_state.api_gateway.outputs.id}",
-            "type": "AWS",
+            "type": "AWS_PROXY",
             "uri": "${aws_lambda_function.hello.invoke_arn}"
          }
       },
@@ -91,6 +91,15 @@
             "runtime": "go1.x",
             "source_code_hash": "${filebase64sha256(\"main.zip\")}",
             "timeout": "3"
+         }
+      },
+      "aws_lambda_permission": {
+         "api_gateway": {
+            "action": "lambda:InvokeFunction",
+            "function_name": "${aws_lambda_function.hello.arn}",
+            "principal": "apigateway.amazonaws.com",
+            "source_arn": "${data.terraform_remote_state.api_gateway.outputs.execution_arn}/*/*/*",
+            "statement_id": "AllowExecutionFromApiGateway"
          }
       }
    },

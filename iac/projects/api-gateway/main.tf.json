@@ -1,5 +1,9 @@
 {
    "output": {
+      "execution_arn": {
+         "description": "API Gateway execution arn.",
+         "value": "${aws_api_gateway_rest_api.greeter.execution_arn}"
+      },
       "id": {
          "description": "API Gateway ID.",
          "value": "${aws_api_gateway_rest_api.greeter.id}"

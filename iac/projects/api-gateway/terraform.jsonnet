@@ -10,6 +10,7 @@
   resource: { aws_api_gateway_rest_api: { greeter: {
     id:: '${aws_api_gateway_rest_api.greeter.id}',
     root_resource_id:: '${aws_api_gateway_rest_api.greeter.root_resource_id}',
+    execution_arn:: '${aws_api_gateway_rest_api.greeter.execution_arn}',
     name: 'greeter-api',
     description: 'An API that greets you.',
   } } },
@@ -24,6 +25,11 @@
     root_resource_id: {
       description: 'API Gateway root resource ID.',
       value: $.resource.aws_api_gateway_rest_api.greeter.root_resource_id,
+    },
+
+    execution_arn: {
+      description: 'API Gateway execution arn.',
+      value: $.resource.aws_api_gateway_rest_api.greeter.execution_arn,
     },
 
   },
