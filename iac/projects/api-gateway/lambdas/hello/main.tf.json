@@ -20,6 +20,16 @@
                }
             ]
          }
+      },
+      "terraform_remote_state": {
+         "api_gateway": {
+            "backend": "s3",
+            "config": {
+               "bucket": "akerr-lab-tfstate",
+               "key": "projects/api-gateway/terraform.tfstate",
+               "region": "us-east-1"
+            }
+         }
       }
    },
    "provider": {
@@ -28,6 +38,41 @@
       }
    },
    "resource": {
+      "aws_api_gateway_deployment": {
+         "dev": {
+            "depends_on": [
+               "aws_api_gateway_method.post",
+               "aws_api_gateway_integration.post"
+            ],
+            "rest_api_id": "${data.terraform_remote_state.api_gateway.outputs.id}",
+            "stage_name": "dev"
+         }
+      },
+      "aws_api_gateway_integration": {
+         "post": {
+            "http_method": "POST",
+            "integration_http_method": "POST",
+            "resource_id": "${aws_api_gateway_resource.hello.id}",
+            "rest_api_id": "${data.terraform_remote_state.api_gateway.outputs.id}",
+            "type": "AWS",
+            "uri": "${aws_lambda_function.hello.invoke_arn}"
+         }
+      },
+      "aws_api_gateway_method": {
+         "post": {
+            "authorization": "NONE",
+            "http_method": "POST",
+            "resource_id": "${aws_api_gateway_resource.hello.id}",
+            "rest_api_id": "${data.terraform_remote_state.api_gateway.outputs.id}"
+         }
+      },
+      "aws_api_gateway_resource": {
+         "hello": {
+            "parent_id": "${data.terraform_remote_state.api_gateway.outputs.root_resource_id}",
+            "path_part": "hello",
+            "rest_api_id": "${data.terraform_remote_state.api_gateway.outputs.id}"
+         }
+      },
       "aws_iam_role": {
          "lambda": {
             "assume_role_policy": "${data.aws_iam_policy_document.lambda_assume_role.json}",
