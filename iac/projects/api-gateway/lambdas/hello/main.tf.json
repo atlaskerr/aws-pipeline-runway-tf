@@ -44,8 +44,14 @@
                "aws_api_gateway_method.post",
                "aws_api_gateway_integration.post"
             ],
+            "lifecycle": {
+               "create_before_destroy": true
+            },
             "rest_api_id": "${data.terraform_remote_state.api_gateway.outputs.id}",
-            "stage_name": "dev"
+            "stage_name": "dev",
+            "variables": {
+               "deployment_unique_id": "resource-${aws_api_gateway_resource.hello.id}-method-${aws_api_gateway_method.post.id}-integration-${aws_api_gateway_integration.post.id}-lamba-version-${aws_lambda_function.hello.version}"
+            }
          }
       },
       "aws_api_gateway_integration": {

@@ -52,6 +52,7 @@
     aws_lambda_function: { hello: {
       invoke_arn:: '${aws_lambda_function.hello.invoke_arn}',
       arn:: '${aws_lambda_function.hello.arn}',
+      version:: '${aws_lambda_function.hello.version}',
       function_name: 'akerr-lab-hello',
       description: 'Test lambda that says hello.',
       memory_size: '128',
@@ -84,6 +85,7 @@
 
     local api_gateway_resource = $.resource.aws_api_gateway_resource.hello,
     aws_api_gateway_method: { post: {
+      id:: '${aws_api_gateway_method.post.id}',
       http_method: 'POST',
       rest_api_id: api_gateway.id,
       resource_id: api_gateway_resource.id,
@@ -91,6 +93,7 @@
     } },
 
     aws_api_gateway_integration: { post: {
+      id:: '${aws_api_gateway_integration.post.id}',
       rest_api_id: api_gateway.id,
       resource_id: api_gateway_resource.id,
       http_method: 'POST',
@@ -102,10 +105,25 @@
     aws_api_gateway_deployment: { dev: {
       rest_api_id: api_gateway.id,
       stage_name: 'dev',
+      variables: {
+        deployment_unique_id: std.join('-', [
+          'resource',
+          api_gateway_resource.id,
+          'method',
+          $.resource.aws_api_gateway_method.post.id,
+          'integration',
+          $.resource.aws_api_gateway_integration.post.id,
+          'lamba-version',
+          $.resource.aws_lambda_function.hello.version,
+        ]),
+      },
       depends_on: [
         'aws_api_gateway_method.post',
         'aws_api_gateway_integration.post',
       ],
+      lifecycle: {
+        create_before_destroy: true,
+      },
     } },
 
   },
