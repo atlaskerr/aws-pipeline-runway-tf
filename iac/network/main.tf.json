@@ -1,7 +1,12 @@
 {
    "output": {
+      "subnet_public_a": {
+         "description": "Subnet public_a metadata",
+         "value": "${aws_subnet.public_a}"
+      },
       "vpc": {
-         "value": "${aws_vpc.main.id}"
+         "description": "Lab VPC resource",
+         "value": "${aws_vpc.main}"
       }
    },
    "provider": {
@@ -10,13 +15,50 @@
       }
    },
    "resource": {
+      "aws_internet_gateway": {
+         "main": {
+            "vpc_id": "${aws_vpc.main.id}"
+         }
+      },
+      "aws_route": {
+         "public_a_default": {
+            "destination_cidr_block": "0.0.0.0/0",
+            "gateway_id": "${aws_internet_gateway.main.id}",
+            "route_table_id": "${aws_route_table.public_a.id}"
+         }
+      },
+      "aws_route_table": {
+         "public_a": {
+            "tags": {
+               "Name": "akerr-lab-rt-public-a"
+            },
+            "vpc_id": "${aws_vpc.main.id}"
+         }
+      },
+      "aws_route_table_association": {
+         "public_a": {
+            "route_table_id": "${aws_route_table.public_a.id}",
+            "subnet_id": "${aws_subnet.public_a.id}"
+         }
+      },
+      "aws_subnet": {
+         "public_a": {
+            "availability_zone": "us-east-1a",
+            "cidr_block": "10.55.1.0/24",
+            "map_public_ip_on_launch": true,
+            "tags": {
+               "Name": "akerr-lab-public-a"
+            },
+            "vpc_id": "${aws_vpc.main.id}"
+         }
+      },
       "aws_vpc": {
          "main": {
             "cidr_block": "10.55.0.0/16",
             "enable_dns_hostnames": true,
             "enable_dns_support": true,
             "tags": {
-               "Name": "akerr-lab"
+               "Name": "akerr-lab-vpc"
             }
          }
       }
