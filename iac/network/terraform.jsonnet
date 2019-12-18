@@ -1,9 +1,8 @@
 local subnets = import 'subnets.libsonnet';
-local ref = import 'variables.libsonnet';
 
 local tag_format(resource_name) = std.strReplace(resource_name, '_', '-');
 
-std.prune({
+{
   terraform: { backend: { s3: {
     bucket: 'akerr-lab-tfstate',
     region: 'us-east-1',
@@ -31,21 +30,18 @@ std.prune({
     local active_azs = std.set(std.map(function(subnet) subnet.az, subnets)),
 
     local azs_with_private_subnets = std.set(std.map(
-      function(subnet)
-        if !subnet.is_public
-        then subnet.az,
-      subnets
+      function(subnet) if !subnet.is_public then subnet.az else '', subnets
     )),
 
     aws_eip: {
-      [if az != null then std.format('nat_%s', az)]: {
+      [if az != '' then std.format('nat_%s', az)]: {
         vpc: true,
       }
       for az in azs_with_private_subnets
     },
 
     aws_nat_gateway: {
-      [az]: {
+      [if az != '' then az]: {
         allocation_id: std.format('${aws_eip.nat_%s.id}', az),
         subnet_id: std.format('${aws_subnet.public_%s.id}', az),
       }
@@ -88,7 +84,7 @@ std.prune({
 
     aws_subnet: {
       [subnet.name]: {
-        vpc_id: ref.vpc.id,
+        vpc_id: $.resource.aws_vpc.main.id,
         availability_zone: $.provider.aws.region + subnet.az,
         cidr_block: subnet.cidr,
         tags: { Name: std.format(
@@ -105,7 +101,7 @@ std.prune({
 
     vpc: {
       description: 'Lab VPC resource',
-      value: ref.vpc.resource,
+      value: $.resource.aws_vpc.main.output,
     },
   } + {
     // subnet resource outputs.
@@ -115,4 +111,4 @@ std.prune({
     }
     for subnet in subnets
   },
-})
+}

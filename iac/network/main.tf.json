@@ -1,5 +1,17 @@
 {
    "output": {
+      "subnet_bar_a": {
+         "description": "Subnet bar_a metadata",
+         "value": "${aws_subnet.bar_a}"
+      },
+      "subnet_baz_a": {
+         "description": "Subnet baz_a metadata",
+         "value": "${aws_subnet.baz_a}"
+      },
+      "subnet_foo_a": {
+         "description": "Subnet foo_a metadata",
+         "value": "${aws_subnet.foo_a}"
+      },
       "subnet_public_a": {
          "description": "Subnet public_a metadata",
          "value": "${aws_subnet.public_a}"
@@ -15,12 +27,38 @@
       }
    },
    "resource": {
+      "aws_eip": {
+         "nat_a": {
+            "vpc": true
+         }
+      },
       "aws_internet_gateway": {
          "main": {
             "vpc_id": "${aws_vpc.main.id}"
          }
       },
+      "aws_nat_gateway": {
+         "a": {
+            "allocation_id": "${aws_eip.nat_a.id}",
+            "subnet_id": "${aws_subnet.public_a.id}"
+         }
+      },
       "aws_route": {
+         "bar_a_default": {
+            "destination_cidr_block": "0.0.0.0/0",
+            "nat_gateway_id": "${aws_nat_gateway.a.id}",
+            "route_table_id": "${aws_route_table.bar_a.id}"
+         },
+         "baz_a_default": {
+            "destination_cidr_block": "0.0.0.0/0",
+            "nat_gateway_id": "${aws_nat_gateway.a.id}",
+            "route_table_id": "${aws_route_table.baz_a.id}"
+         },
+         "foo_a_default": {
+            "destination_cidr_block": "0.0.0.0/0",
+            "nat_gateway_id": "${aws_nat_gateway.a.id}",
+            "route_table_id": "${aws_route_table.foo_a.id}"
+         },
          "public_a_default": {
             "destination_cidr_block": "0.0.0.0/0",
             "gateway_id": "${aws_internet_gateway.main.id}",
@@ -28,6 +66,24 @@
          }
       },
       "aws_route_table": {
+         "bar_a": {
+            "tags": {
+               "Name": "akerr-lab-rt-bar-a"
+            },
+            "vpc_id": "${aws_vpc.main.id}"
+         },
+         "baz_a": {
+            "tags": {
+               "Name": "akerr-lab-rt-baz-a"
+            },
+            "vpc_id": "${aws_vpc.main.id}"
+         },
+         "foo_a": {
+            "tags": {
+               "Name": "akerr-lab-rt-foo-a"
+            },
+            "vpc_id": "${aws_vpc.main.id}"
+         },
          "public_a": {
             "tags": {
                "Name": "akerr-lab-rt-public-a"
@@ -36,12 +92,51 @@
          }
       },
       "aws_route_table_association": {
+         "bar_a": {
+            "route_table_id": "${aws_route_table.bar_a.id}",
+            "subnet_id": "${aws_subnet.bar_a.id}"
+         },
+         "baz_a": {
+            "route_table_id": "${aws_route_table.baz_a.id}",
+            "subnet_id": "${aws_subnet.baz_a.id}"
+         },
+         "foo_a": {
+            "route_table_id": "${aws_route_table.foo_a.id}",
+            "subnet_id": "${aws_subnet.foo_a.id}"
+         },
          "public_a": {
             "route_table_id": "${aws_route_table.public_a.id}",
             "subnet_id": "${aws_subnet.public_a.id}"
          }
       },
       "aws_subnet": {
+         "bar_a": {
+            "availability_zone": "us-east-1a",
+            "cidr_block": "10.55.3.0/24",
+            "map_public_ip_on_launch": false,
+            "tags": {
+               "Name": "akerr-lab-bar-a"
+            },
+            "vpc_id": "${aws_vpc.main.id}"
+         },
+         "baz_a": {
+            "availability_zone": "us-east-1a",
+            "cidr_block": "10.55.4.0/24",
+            "map_public_ip_on_launch": false,
+            "tags": {
+               "Name": "akerr-lab-baz-a"
+            },
+            "vpc_id": "${aws_vpc.main.id}"
+         },
+         "foo_a": {
+            "availability_zone": "us-east-1a",
+            "cidr_block": "10.55.2.0/24",
+            "map_public_ip_on_launch": false,
+            "tags": {
+               "Name": "akerr-lab-foo-a"
+            },
+            "vpc_id": "${aws_vpc.main.id}"
+         },
          "public_a": {
             "availability_zone": "us-east-1a",
             "cidr_block": "10.55.1.0/24",
